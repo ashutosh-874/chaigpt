@@ -81,6 +81,17 @@ bunx prisma migrate dev     # apply migrations locally
 bunx prisma studio          # browse the database
 ```
 
+## Deployment
+
+This repository is pre-configured for platforms like Railway or Render:
+- **Prisma Client**: Automatically generated after dependency installation via the `postinstall` script.
+- **Database Migrations**: The `start` script runs `prisma migrate deploy` automatically before starting the Next.js server, ensuring your database schema is up-to-date.
+
+To deploy:
+1. Connect this repository to your deployment platform (e.g., Railway).
+2. Provision a PostgreSQL database.
+3. Configure the environment variables listed in the [Environment variables](#environment-variables) section.
+
 ## Project structure
 
 ```
