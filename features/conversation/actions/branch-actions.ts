@@ -54,7 +54,7 @@ export async function createBranch(conversationId: string, messageId: string): P
 		const newConversation = await tx.conversation.create({
 			data: {
 				userId: user.id,
-				title: `${conversation.title} (branch)`,
+				title: `Branch: ${conversation.title}`,
 				model: conversation.model,
 				systemPrompt: conversation.systemPrompt,
 				parentConversationId: conversationId,

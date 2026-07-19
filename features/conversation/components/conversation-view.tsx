@@ -8,7 +8,8 @@ import React, { useMemo, useState, useEffect } from 'react';
 import { useTheme } from "next-themes";
 import { SunIcon, MoonIcon } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { useConversations } from '../hooks/use-conversation';
+import { Input } from "@/components/ui/input";
+import { useConversations, useUpdateConversation } from '../hooks/use-conversation';
 import { queryKeys } from '../utils/query-keys';
 import { toast } from 'sonner';
 import { ChatEmpty } from './chat-empty';
@@ -77,13 +78,57 @@ export const ConversationView = ({
     const title =
     conversations?.find((item) => item.id === conversationId)?.title ?? "Chat";
 
+    const updateConversation = useUpdateConversation();
+    const [isRenaming, setIsRenaming] = useState(false);
+    const [renameValue, setRenameValue] = useState(title);
+
+    /** Enters rename mode, pre-filled with the current title. */
+    function startRename() {
+        setRenameValue(title);
+        setIsRenaming(true);
+    }
+
+    /** Persists the new title if it changed, then exits rename mode. */
+    function submitRename() {
+        const next = renameValue.trim();
+        if (next && next !== title) {
+            updateConversation.mutate({ id: conversationId, title: next });
+        }
+        setIsRenaming(false);
+    }
+
     return (
         <div className="flex h-full min-h-0 flex-1 flex-col">
             <header className="flex h-14 shrink-0 items-center justify-between border-b border-border/65 bg-background/80 backdrop-blur-md px-4 z-10">
                 <div className="flex items-center gap-2 min-w-0">
                     <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground transition-colors" />
                     <Separator orientation="vertical" className="mx-2 h-4 bg-border/80" />
-                    <h1 className="truncate text-sm font-semibold text-foreground tracking-tight">{title}</h1>
+                    {isRenaming ? (
+                        <Input
+                            autoFocus
+                            value={renameValue}
+                            onChange={(e) => setRenameValue(e.target.value)}
+                            onBlur={submitRename}
+                            onKeyDown={(e) => {
+                                if (e.key === "Enter") {
+                                    e.preventDefault();
+                                    submitRename();
+                                } else if (e.key === "Escape") {
+                                    e.preventDefault();
+                                    setIsRenaming(false);
+                                }
+                            }}
+                            className="h-7 max-w-64 text-sm font-semibold"
+                        />
+                    ) : (
+                        <h1
+                            onClick={startRename}
+                            className="truncate text-sm font-semibold text-foreground tracking-tight cursor-text rounded-md px-1 -mx-1 hover:bg-accent/60 transition-colors"
+                            title="Click to rename"
+                        >
+                            {title}
+                        </h1>
+                    )}
                 </div>
                 <Button
                     type="button"
