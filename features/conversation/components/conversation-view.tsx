@@ -76,7 +76,7 @@ export const ConversationView = ({
         },
     })
     const title =
-    conversations?.find((item) => item.id === conversationId)?.title ?? "Chat";
+    conversations?.find((item) => item.id === conversationId)?.title ?? conversation.title;
 
     const updateConversation = useUpdateConversation();
     const [isRenaming, setIsRenaming] = useState(false);

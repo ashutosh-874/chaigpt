@@ -4,14 +4,16 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useState } from "react";
 import {
+  LogOutIcon,
   MoreHorizontalIcon,
   PencilIcon,
   PinIcon,
   PinOffIcon,
   PlusIcon,
+  SettingsIcon,
   Trash2Icon,
 } from "lucide-react";
-import { UserButton, useClerk, useUser } from "@clerk/nextjs";
+import { useClerk, useUser } from "@clerk/nextjs";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -289,7 +291,7 @@ function ChatItem({
   );
 }
 
-/** Footer menu with clickable Clerk user account button and name label. */
+/** Footer menu — user account button with manage-account and log-out actions. */
 function SidebarFooterMenu() {
   const { user } = useUser();
   const clerk = useClerk();
@@ -301,29 +303,51 @@ function SidebarFooterMenu() {
   return (
     <SidebarMenu>
       <SidebarMenuItem>
-        <button
-          type="button"
-          onClick={() => clerk.openUserProfile()}
-          className="flex w-full items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-sidebar-accent/50 transition-colors cursor-pointer group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
-        >
-          <div onClick={(e) => e.stopPropagation()}>
-            <UserButton
-              appearance={{
-                elements: {
-                  avatarBox: "size-8",
-                },
-              }}
-            />
-          </div>
-          <div className="flex flex-col min-w-0 text-left leading-normal group-data-[collapsible=icon]:hidden">
-            <span className="truncate text-sm font-semibold text-foreground">
-              {displayName}
-            </span>
-            <span className="truncate text-[10px] text-muted-foreground font-medium">
+        <DropdownMenu>
+          <DropdownMenuTrigger
+            render={
+              <button
+                type="button"
+                className="flex w-full items-center gap-2 px-2 py-1.5 rounded-lg text-left hover:bg-sidebar-accent/50 transition-colors cursor-pointer group-data-[collapsible=icon]:justify-center group-data-[collapsible=icon]:px-0"
+              />
+            }
+          >
+            {user?.imageUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={user.imageUrl}
+                alt=""
+                className="size-8 shrink-0 rounded-full"
+              />
+            ) : (
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-semibold text-primary-foreground">
+                {displayName.charAt(0).toUpperCase()}
+              </span>
+            )}
+            <div className="flex flex-col min-w-0 text-left leading-normal group-data-[collapsible=icon]:hidden">
+              <span className="truncate text-sm font-semibold text-foreground">
+                {displayName}
+              </span>
+              <span className="truncate text-[10px] text-muted-foreground font-medium">
+                Manage account
+              </span>
+            </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent side="top" align="start" className="w-56">
+            <DropdownMenuItem onClick={() => clerk.openUserProfile()}>
+              <SettingsIcon />
               Manage account
-            </span>
-          </div>
-        </button>
+            </DropdownMenuItem>
+            <DropdownMenuSeparator />
+            <DropdownMenuItem
+              variant="destructive"
+              onClick={() => clerk.signOut({ redirectUrl: "/sign-in" })}
+            >
+              <LogOutIcon />
+              Log out
+            </DropdownMenuItem>
+          </DropdownMenuContent>
+        </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
   );

@@ -17,7 +17,7 @@ import {
   MessageAction,
 } from "@/components/ai-elements/message";
 import { Tool, ToolHeader, ToolContent } from "@/components/ai-elements/tool";
-import { Loader } from "@/components/ai-elements/loader";
+import { TypingIndicator } from "@/components/ai-elements/loader";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,15 +52,7 @@ export function ChatMessages({
   messageMetadata,
 }: ChatMessagesProps) {
   const lastMessage = messages.at(-1);
-  const isWaiting =
-    status !== "ready" &&
-    (status === "submitted" || status === "streaming") &&
-    (lastMessage?.role === "user" ||
-      (lastMessage?.role === "assistant" &&
-        (!lastMessage.parts ||
-          !lastMessage.parts.some(
-            (part) => part.type === "text" && part.text.trim().length > 0
-          ))));
+  const isStreamingOrSubmitted = status === "submitted" || status === "streaming";
 
   const branchMutation = useBranchConversation();
 
@@ -87,13 +79,27 @@ export function ChatMessages({
   return (
     <Conversation>
       <ConversationContent className="mx-auto w-full max-w-3xl py-8">
-        {messages.map((message) => (
+        {messages.map((message, index) => {
+          const isLastMessage = index === messages.length - 1;
+          const hasRenderableContent = message.parts.some(
+            (part) =>
+              (part.type === "text" && part.text.trim().length > 0) ||
+              isToolUIPart(part)
+          );
+          const showTypingInline =
+            isLastMessage &&
+            message.role === "assistant" &&
+            isStreamingOrSubmitted &&
+            !hasRenderableContent;
+
+          return (
           <React.Fragment key={message.id}>
             <Message from={message.role}>
               <MessageContent>
-                {message.parts.map((part, i) => {
+                {showTypingInline ? (
+                  <TypingIndicator />
+                ) : message.parts.map((part, i) => {
                   if (part.type === "text") {
-                    const isLastMessage = message.id === messages.at(-1)?.id;
                     const isStreaming = isLastMessage && status === "streaming";
                     return (
                       <MessageResponse key={i} isAnimating={isStreaming}>
@@ -218,7 +224,7 @@ export function ChatMessages({
             </Message>
 
             {messageMetadata[message.id]?.originalMessageId === branchedFromMessageId && parentConversation && (
-              <div className="my-6 flex items-center gap-2 border-l-2 border-green-500 pl-4 py-2 text-sm text-muted-foreground self-start">
+              <div className="-my-3 flex items-center gap-2 border-l-2 border-green-500 pl-4 py-2 text-sm text-muted-foreground self-start">
                 <GitBranch className="size-4 text-green-500" />
                 <span>Branched from</span>
                 <Link
@@ -230,12 +236,13 @@ export function ChatMessages({
               </div>
             )}
           </React.Fragment>
-        ))}
+          );
+        })}
 
-        {isWaiting ? (
+        {lastMessage?.role === "user" && isStreamingOrSubmitted ? (
           <Message from="assistant">
             <MessageContent>
-              <Loader />
+              <TypingIndicator />
             </MessageContent>
           </Message>
         ) : null}
