@@ -78,7 +78,7 @@ export function ChatMessages({
 
   return (
     <Conversation>
-      <ConversationContent className="mx-auto w-full max-w-3xl py-8">
+      <ConversationContent className="mx-auto w-full max-w-3xl pt-8 pb-12">
         {messages.map((message, index) => {
           const isLastMessage = index === messages.length - 1;
           const hasRenderableContent = message.parts.some(
@@ -194,10 +194,10 @@ export function ChatMessages({
                         {messageBranches[message.id].map((branch) => (
                           <DropdownMenuItem
                             key={branch.id}
-                            className="cursor-pointer"
+                            className="cursor-pointer min-w-0"
                             render={<Link href={`/c/${branch.id}`} />}
                           >
-                            <span>{branch.title}</span>
+                            <span className="truncate">{branch.title}</span>
                           </DropdownMenuItem>
                         ))}
                       </DropdownMenuContent>
