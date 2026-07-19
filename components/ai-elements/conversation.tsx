@@ -5,7 +5,7 @@ import { cn } from "@/lib/utils";
 import type { UIMessage } from "ai";
 import { ArrowDownIcon, DownloadIcon } from "lucide-react";
 import type { ComponentProps } from "react";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { StickToBottom, useStickToBottomContext } from "use-stick-to-bottom";
 
 export type ConversationProps = ComponentProps<typeof StickToBottom>;
@@ -165,4 +165,13 @@ export const ConversationDownload = ({
       {children ?? <DownloadIcon className="size-4" />}
     </Button>
   );
+};
+
+/** Automatically scrolls the scroll area to the bottom when mounted. */
+export const ScrollToBottomOnMount = () => {
+  const { scrollToBottom } = useStickToBottomContext();
+  useEffect(() => {
+    scrollToBottom();
+  }, [scrollToBottom]);
+  return null;
 };

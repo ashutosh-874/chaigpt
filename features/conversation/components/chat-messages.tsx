@@ -7,7 +7,7 @@ import type { ChatStatus } from "ai";
 import {
   Conversation,
   ConversationContent,
-  ConversationScrollButton,
+  ScrollToBottomOnMount,
 } from "@/components/ai-elements/conversation";
 import {
   Message,
@@ -51,8 +51,16 @@ export function ChatMessages({
   messageBranches,
   messageMetadata,
 }: ChatMessagesProps) {
+  const lastMessage = messages.at(-1);
   const isWaiting =
-    status === "submitted" && messages.at(-1)?.role === "user";
+    status !== "ready" &&
+    (status === "submitted" || status === "streaming") &&
+    (lastMessage?.role === "user" ||
+      (lastMessage?.role === "assistant" &&
+        (!lastMessage.parts ||
+          !lastMessage.parts.some(
+            (part) => part.type === "text" && part.text.trim().length > 0
+          ))));
 
   const branchMutation = useBranchConversation();
 
@@ -69,14 +77,20 @@ export function ChatMessages({
 
   return (
     <Conversation>
-      <ConversationContent className="py-8">
+      <ConversationContent className="mx-auto w-full max-w-3xl py-8">
         {messages.map((message) => (
           <React.Fragment key={message.id}>
             <Message from={message.role}>
               <MessageContent>
                 {message.parts.map((part, i) => {
                   if (part.type === "text") {
-                    return <MessageResponse key={i}>{part.text}</MessageResponse>;
+                    const isLastMessage = message.id === messages.at(-1)?.id;
+                    const isStreaming = isLastMessage && status === "streaming";
+                    return (
+                      <MessageResponse key={i} isAnimating={isStreaming}>
+                        {part.text}
+                      </MessageResponse>
+                    );
                   }
 
                   if (isToolUIPart(part) && part.type === "tool-webSearch") {
@@ -91,24 +105,44 @@ export function ChatMessages({
                             <p className="text-destructive">{part.errorText}</p>
                           )}
                           {part.state === "output-available" && (
-                            <ul className="space-y-1">
+                            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 mt-2 w-full">
                               {(
                                 part.output as {
                                   results: { title: string; url: string }[];
                                 }
-                              ).results.map((result) => (
-                                <li key={result.url}>
+                              ).results.map((result) => {
+                                let domain = "";
+                                try {
+                                  domain = new URL(result.url).hostname.replace("www.", "");
+                                } catch {
+                                  domain = result.url;
+                                }
+                                return (
                                   <a
+                                    key={result.url}
                                     href={result.url}
                                     target="_blank"
                                     rel="noreferrer"
-                                    className="underline"
+                                    className="group flex flex-col gap-1.5 p-2.5 rounded-xl border border-border bg-card/60 backdrop-blur-xs hover:bg-accent/40 hover:border-primary/40 hover:-translate-y-0.5 transition-all duration-200 text-left cursor-pointer shadow-xs hover:shadow-sm"
                                   >
-                                    {result.title}
+                                    <div className="flex items-center gap-1.5 font-medium text-muted-foreground text-[10px]">
+                                      <img
+                                        src={`https://www.google.com/s2/favicons?sz=32&domain=${domain}`}
+                                        alt=""
+                                        className="size-3.5 rounded-xs object-contain bg-white p-0.5 border border-border/80"
+                                        onError={(e) => {
+                                          e.currentTarget.style.display = "none";
+                                        }}
+                                      />
+                                      <span className="truncate group-hover:text-foreground transition-colors">{domain}</span>
+                                    </div>
+                                    <span className="font-semibold text-foreground text-xs leading-snug line-clamp-2 group-hover:text-primary transition-colors">
+                                      {result.title}
+                                    </span>
                                   </a>
-                                </li>
-                              ))}
-                            </ul>
+                                );
+                              })}
+                            </div>
                           )}
                         </ToolContent>
                       </Tool>
@@ -119,7 +153,7 @@ export function ChatMessages({
                 })}
               </MessageContent>
               {message.role === "assistant" && (
-                <MessageActions className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 self-end flex items-center gap-2">
+                <MessageActions className="pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 self-end flex items-center gap-2">
                   {messageBranches[message.id] && messageBranches[message.id].length > 0 && (
                     <DropdownMenu>
                       <DropdownMenuTrigger
@@ -199,6 +233,7 @@ export function ChatMessages({
           </Message>
         ) : null}
       </ConversationContent>
+      <ScrollToBottomOnMount />
     </Conversation>
   );
 }

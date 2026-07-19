@@ -65,7 +65,16 @@ export function ChatComposer({
       onSubmit={(event) => void handleSubmit(event)}
       className={cn("mx-auto w-full max-w-3xl px-4 pb-4 md:px-6", className)}
     >
-      <InputGroup className="h-auto min-h-14 rounded-3xl border-border/80 bg-background shadow-sm dark:bg-input/40">
+      <InputGroup className="h-auto min-h-14 rounded-3xl border-border/80 bg-background/80 backdrop-blur-md shadow-md focus-within:border-primary/50 focus-within:ring-3 focus-within:ring-primary/15 transition-all duration-300 dark:bg-input/20">
+        <InputGroupAddon align="inline-start" className="pl-4 pb-3 self-end select-none pointer-events-none">
+          <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:bg-emerald-500/20 dark:text-emerald-400 font-semibold text-[10px] tracking-wide uppercase shadow-2xs border border-emerald-500/20">
+            <span className="relative flex size-1.5">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full size-1.5 bg-emerald-500"></span>
+            </span>
+            <span>Web Search Active</span>
+          </div>
+        </InputGroupAddon>
         <InputGroupTextarea
           ref={textareaRef}
           value={value}
@@ -74,7 +83,7 @@ export function ChatComposer({
           placeholder={placeholder}
           disabled={isSending}
           rows={1}
-          className="max-h-48 min-h-12 py-3.5 pl-4 text-[15px] leading-relaxed"
+          className="max-h-48 min-h-12 py-3.5 pl-2 text-[15px] leading-relaxed"
         />
         <InputGroupAddon align="inline-end" className="pr-2 pb-2 self-end">
           <InputGroupButton
@@ -82,7 +91,10 @@ export function ChatComposer({
             size="icon-sm"
             variant="default"
             disabled={!canSend}
-            className="size-9 rounded-full"
+            className={cn(
+              "size-9 rounded-full transition-all duration-200 active:scale-90 hover:scale-105 cursor-pointer",
+              canSend && "bg-primary text-primary-foreground hover:bg-primary/95 shadow-md shadow-primary/20"
+            )}
             aria-label="Send message"
           >
             {isSending ? <Spinner /> : <ArrowUpIcon />}

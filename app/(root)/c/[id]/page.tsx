@@ -33,7 +33,7 @@ const page = async ({ params }: ConversationPageProps) => {
 
 	const messageMetadata: Record<string, { originalMessageId?: string }> = {};
 	for (const row of messageMetadataRows) {
-		const meta = (row.metadata as Record<string, any>) || {};
+		const meta = (row.metadata as Record<string, string | undefined>) || {};
 		if (meta.originalMessageId) {
 			messageMetadata[row.id] = { originalMessageId: meta.originalMessageId };
 		}

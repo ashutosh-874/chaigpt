@@ -64,7 +64,7 @@ export async function createBranch(conversationId: string, messageId: string): P
 
 		// Copy messages
 		for (const msg of messagesToCopy) {
-			const originalMetadata = (msg.metadata as Record<string, any>) || {};
+			const originalMetadata = (msg.metadata as Record<string, unknown>) || {};
 			const newMetadata = {
 				...originalMetadata,
 				originalMessageId: msg.id,

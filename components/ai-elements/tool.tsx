@@ -43,7 +43,8 @@ export const Tool = ({ className, state, ...props }: ToolProps) => {
 
 	useEffect(() => {
 		if (state === "output-available") {
-			setOpen(false);
+			const frame = requestAnimationFrame(() => setOpen(false));
+			return () => cancelAnimationFrame(frame);
 		}
 	}, [state]);
 
