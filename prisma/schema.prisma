@@ -31,6 +31,9 @@ model Conversation {
   title         String   @default("New Chat")
   model         String? 						// e.g. openai/gpt-4.1 — per-thread model override
   systemPrompt  String?  @db.Text 				// stores it as a SQL TEXT column, allowing much larger content. Prisma’s default String maps to something like VARCHAR(255)
+  parentConversationId String?                  // null for root conversations, set when created from another conversation
+  branchedFromMessageId  String?                // points to copied message in the new conversation after which the "Branched from..." banner is shown
+  branchedFromMessage    Message? @relation("MessageBranches", fields: [branchedFromMessageId], references: [id])
   isPinned      Boolean  @default(false)
   isArchived    Boolean  @default(false)
   createdAt     DateTime @default(now())
@@ -38,10 +41,16 @@ model Conversation {
   lastMessageAt DateTime @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   messages Message[]
+
+  parentConversation Conversation? @relation("ConversationBranches", fields: [parentConversationId], references: [id])
+  branches           Conversation[] @relation("ConversationBranches")
 
   @@index([userId, lastMessageAt(sort: Desc)])
   @@index([userId, isPinned, lastMessageAt(sort: Desc)])
+  @@index([parentConversationId])
+  @@index([branchedFromMessageId])
 }
 
 enum MessageRole {
@@ -67,6 +76,8 @@ model Message {
 	metadata       	Json? 
 
 	conversation 	Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+	branches      Conversation[] @relation("MessageBranches") // conversations branched from this message
 
 	createdAt 		DateTime @default(now())
 	updatedAt 		DateTime @updatedAt

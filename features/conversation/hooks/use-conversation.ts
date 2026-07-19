@@ -10,6 +10,7 @@ import {
     listConversations,
     updateConversation,
 } from "@/features/conversation/actions/conversation-actions";
+import { createBranch } from "@/features/conversation/actions/branch-actions";
 import { queryKeys } from "../utils/query-keys";
 
 
@@ -89,6 +90,25 @@ export function useDeleteConversation(activeId?: string) {
         },
         onError: (error: Error) => {
             toast.error(error.message || "Could not delete chat");
+        },
+    });
+}
+
+export function useBranchConversation() {
+    const queryClient = useQueryClient();
+    const router = useRouter();
+
+    return useMutation({
+        mutationFn: ({ conversationId, messageId }: { conversationId: string; messageId: string }) =>
+            createBranch(conversationId, messageId),
+        onSuccess: (newConversationId) => {
+            void queryClient.invalidateQueries({
+                queryKey: queryKeys.conversations.all,
+            });
+            router.push(`/c/${newConversationId}`);
+        },
+        onError: (error: Error) => {
+            toast.error(error.message || "Could not branch chat");
         },
     });
 }

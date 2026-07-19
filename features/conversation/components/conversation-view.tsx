@@ -15,12 +15,29 @@ import { ChatComposer } from './chat-composer';
 type ConversationViewProps = {
     conversationId: string;
     initialMessages: UIMessage[];
+    conversation: {
+        id: string;
+        title: string;
+        model: string | null;
+        systemPrompt: string | null;
+        parentConversationId: string | null;
+        branchedFromMessageId: string | null;
+        parentConversation?: { id: string; title: string } | null;
+    };
+    messageBranches: Record<string, { id: string; title: string }[]>;
+    messageMetadata: Record<string, { originalMessageId?: string }>;
 };
 
 /**
  * Main chat view — header, message list (or empty state), and composer with streaming.
  */
-export const ConversationView = ({ conversationId, initialMessages }: ConversationViewProps) => {
+export const ConversationView = ({
+    conversationId,
+    initialMessages,
+    conversation,
+    messageBranches,
+    messageMetadata
+}: ConversationViewProps) => {
 
     const queryClient = useQueryClient();
     const { data: conversations } = useConversations();
@@ -61,7 +78,15 @@ export const ConversationView = ({ conversationId, initialMessages }: Conversati
             {messages.length === 0 ? (
                 <ChatEmpty />
             ) : (
-                <ChatMessages messages={messages} status={status} />
+                <ChatMessages
+                    messages={messages}
+                    status={status}
+                    conversationId={conversationId}
+                    branchedFromMessageId={conversation.branchedFromMessageId}
+                    parentConversation={conversation.parentConversation}
+                    messageBranches={messageBranches}
+                    messageMetadata={messageMetadata}
+                />
             )}
 
             <ChatComposer

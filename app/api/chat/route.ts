@@ -47,7 +47,10 @@ export async function POST(req: Request) {
 
     const result =  streamText({
         model: getChatModel(conversation.model),
-        system: conversation.systemPrompt ?? "You are ChaiGpt , a helpful assistant",
+        system: conversation.systemPrompt
+            ??
+            `You are a helpful assistant named ChaiGPT who answers user's question in a simple way and use minimal words. You should try to answer the question in minimal words possible.`
+        ,
         messages: await convertToModelMessages(messages),
     });
 
@@ -59,12 +62,12 @@ export async function POST(req: Request) {
            originalMessages:messages,
            generateMessageId:createIdGenerator({prefix:"msg" , size:16}),
            onEnd:async({messages:finalMessages})=>{
-            try {
+                try {
                 await saveChatMessages(id , finalMessages , {updateTitle:false})
-            } catch (error) {
-                console.error(error);
+                } catch (error) {
+                    console.error(error);
+                }
             }
-           }
         })
     })
 

@@ -14,7 +14,7 @@ export type ConversationListItem = {
     updatedAt:      Date;
 };
 
-async function assertOwnsConversation(conversationId: string, userId: string) {
+export async function assertOwnsConversation(conversationId: string, userId: string) {
     const conversation = await prisma.conversation.findFirst({
         where: {
             id: conversationId,
@@ -31,8 +31,60 @@ async function assertOwnsConversation(conversationId: string, userId: string) {
 
 export async function getConversation(conversationId: string) {
     const user = await requireUser();
-    return assertOwnsConversation(conversationId, user.id)
+    const conversation = await prisma.conversation.findFirst({
+        where: {
+            id: conversationId,
+            userId: user.id
+        },
+        include: {
+            parentConversation: {
+                select: {
+                    id: true,
+                    title: true
+                }
+            },
+            branchedFromMessage: {
+                select: {
+                    id: true
+                }
+            }
+        }
+    });
+
+    if (!conversation) {
+        throw new Error("Conversation not found");
+    }
+
+    return conversation;
 }
+
+export async function loadMessageBranches(conversationId: string): Promise<Record<string, { id: string; title: string }[]>> {
+    const user = await requireUser();
+    await assertOwnsConversation(conversationId, user.id);
+
+    const messages = await prisma.message.findMany({
+        where: { conversationId },
+        select: {
+            id: true,
+            branches: {
+                select: {
+                    id: true,
+                    title: true
+                }
+            }
+        }
+    });
+
+    const record: Record<string, { id: string; title: string }[]> = {};
+    for (const m of messages) {
+        if (m.branches.length > 0) {
+            record[m.id] = m.branches;
+        }
+    }
+
+    return record;
+}
+
 
 
 export async function listConversations(): Promise<ConversationListItem[]> {
