@@ -1,9 +1,10 @@
 import { loadChatMessages, saveChatMessages } from "@/features/ai/actions/chat-store";
 import { getChatModel } from "@/features/ai/utils/model";
+import { webSearchTool } from "@/features/ai/tools/web-search";
 import { requireUser } from "@/features/auth/action/require-user";
 import { prisma } from "@/lib/db";
 import { auth } from "@clerk/nextjs/server";
-import { convertToModelMessages, createIdGenerator, createUIMessageStream, createUIMessageStreamResponse, streamText, toUIMessageStream, type UIMessage } from "ai";
+import { convertToModelMessages, createIdGenerator, createUIMessageStreamResponse, stepCountIs, streamText, toUIMessageStream, type UIMessage } from "ai";
 
 /**
  * POST /api/chat — Streams an AI assistant reply for a conversation.
@@ -49,9 +50,11 @@ export async function POST(req: Request) {
         model: getChatModel(conversation.model),
         system: conversation.systemPrompt
             ??
-            `You are a helpful assistant named ChaiGPT who answers user's question in a simple way and use minimal words. You should try to answer the question in minimal words possible.`
+            `You are a helpful assistant named ChaiGPT who answers user's question in a simple way and use minimal words. You should try to answer the question in minimal words possible. When you need current information, facts you're unsure of, or anything time-sensitive, use the webSearch tool before answering.`
         ,
         messages: await convertToModelMessages(messages),
+        tools: { webSearch: webSearchTool },
+        stopWhen: stepCountIs(5),
     });
 
     result.consumeStream();

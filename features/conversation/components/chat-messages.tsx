@@ -1,7 +1,7 @@
 "use client";
 
 import React from "react";
-import { isTextUIPart, type UIMessage } from "ai";
+import { isToolUIPart, type UIMessage } from "ai";
 import type { ChatStatus } from "ai";
 
 import {
@@ -16,6 +16,7 @@ import {
   MessageActions,
   MessageAction,
 } from "@/components/ai-elements/message";
+import { Tool, ToolHeader, ToolContent } from "@/components/ai-elements/tool";
 import { Loader } from "@/components/ai-elements/loader";
 import {
   DropdownMenu,
@@ -27,14 +28,6 @@ import { MoreHorizontal, GitBranch } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useBranchConversation } from "@/features/conversation/hooks/use-conversation";
-
-/** Extracts plain text from a `UIMessage` by joining all text parts. */
-function getMessageText(message: UIMessage) {
-  return message.parts
-    .filter(isTextUIPart)
-    .map((part) => part.text)
-    .join("");
-}
 
 type ChatMessagesProps = {
   messages: UIMessage[];
@@ -81,7 +74,49 @@ export function ChatMessages({
           <React.Fragment key={message.id}>
             <Message from={message.role}>
               <MessageContent>
-                <MessageResponse>{getMessageText(message)}</MessageResponse>
+                {message.parts.map((part, i) => {
+                  if (part.type === "text") {
+                    return <MessageResponse key={i}>{part.text}</MessageResponse>;
+                  }
+
+                  if (isToolUIPart(part) && part.type === "tool-webSearch") {
+                    return (
+                      <Tool key={part.toolCallId} state={part.state}>
+                        <ToolHeader
+                          state={part.state}
+                          query={(part.input as { query?: string } | undefined)?.query}
+                        />
+                        <ToolContent>
+                          {part.state === "output-error" && (
+                            <p className="text-destructive">{part.errorText}</p>
+                          )}
+                          {part.state === "output-available" && (
+                            <ul className="space-y-1">
+                              {(
+                                part.output as {
+                                  results: { title: string; url: string }[];
+                                }
+                              ).results.map((result) => (
+                                <li key={result.url}>
+                                  <a
+                                    href={result.url}
+                                    target="_blank"
+                                    rel="noreferrer"
+                                    className="underline"
+                                  >
+                                    {result.title}
+                                  </a>
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </ToolContent>
+                      </Tool>
+                    );
+                  }
+
+                  return null;
+                })}
               </MessageContent>
               {message.role === "assistant" && (
                 <MessageActions className="opacity-0 group-hover:opacity-100 transition-opacity duration-200 self-end flex items-center gap-2">
