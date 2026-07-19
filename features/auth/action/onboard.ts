@@ -3,6 +3,7 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { prisma } from "@/lib/db";
 
+/** Upserts the Clerk user into the local User table. Run before requireUser(). */
 export async function onBoard() {
     const clerkUser = await currentUser();
 

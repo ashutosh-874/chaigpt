@@ -14,6 +14,7 @@ export type ConversationListItem = {
     updatedAt:      Date;
 };
 
+/** Throws if the conversation doesn't exist or isn't owned by userId. Returns it otherwise. */
 export async function assertOwnsConversation(conversationId: string, userId: string) {
     const conversation = await prisma.conversation.findFirst({
         where: {
@@ -29,6 +30,7 @@ export async function assertOwnsConversation(conversationId: string, userId: str
 
 
 
+/** Loads one conversation, including its parent (if it's a branch). */
 export async function getConversation(conversationId: string) {
     const user = await requireUser();
     const conversation = await prisma.conversation.findFirst({
@@ -58,6 +60,7 @@ export async function getConversation(conversationId: string) {
     return conversation;
 }
 
+/** Maps each message ID to the conversations branched from it. */
 export async function loadMessageBranches(conversationId: string): Promise<Record<string, { id: string; title: string }[]>> {
     const user = await requireUser();
     await assertOwnsConversation(conversationId, user.id);
@@ -87,6 +90,7 @@ export async function loadMessageBranches(conversationId: string): Promise<Recor
 
 
 
+/** Lists the current user's conversations, pinned first then most recent. */
 export async function listConversations(): Promise<ConversationListItem[]> {
 
     const user = await requireUser();
@@ -108,6 +112,7 @@ export async function listConversations(): Promise<ConversationListItem[]> {
 }
 
 
+/** Creates a new conversation for the current user. */
 export async function createConversation(title = "New Chat") {
     const user = await requireUser();
 
@@ -120,6 +125,7 @@ export async function createConversation(title = "New Chat") {
 }
 
 
+/** Updates title/pin/archive state on a conversation the user owns. */
 export async function updateConversation(
     conversationId: string,
     data: { title?: string; isPinned?: boolean; isArchived?: boolean }
@@ -143,6 +149,7 @@ export async function updateConversation(
   
 
 
+/** Deletes a conversation the user owns, cascading its messages. */
 export async function deleteConversation(conversationId: string) {
     const user = await requireUser();
     await assertOwnsConversation(conversationId, user.id);

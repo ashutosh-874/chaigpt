@@ -24,7 +24,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { MoreHorizontal, GitBranch } from "lucide-react";
+import { CopyIcon, GitBranch } from "lucide-react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { useBranchConversation } from "@/features/conversation/hooks/use-conversation";
@@ -73,6 +73,15 @@ export function ChatMessages({
         error: "Failed to create branch",
       }
     );
+  };
+
+  const handleCopy = (message: UIMessage) => {
+    const text = message.parts
+      .filter((part) => part.type === "text")
+      .map((part) => part.text)
+      .join("");
+    void navigator.clipboard.writeText(text);
+    toast.success("Copied to clipboard");
   };
 
   return (
@@ -153,7 +162,7 @@ export function ChatMessages({
                 })}
               </MessageContent>
               {message.role === "assistant" && (
-                <MessageActions className="pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 self-end flex items-center gap-2">
+                <MessageActions className="pointer-fine:opacity-0 pointer-fine:group-hover:opacity-100 group-focus-within:opacity-100 transition-opacity duration-200 self-start flex items-center gap-2">
                   {messageBranches[message.id] && messageBranches[message.id].length > 0 && (
                     <DropdownMenu>
                       <DropdownMenuTrigger
@@ -173,12 +182,13 @@ export function ChatMessages({
                         }
                       />
                       <DropdownMenuContent
-                        align="end"
+                        align="start"
                         className="w-max max-w-xs whitespace-nowrap"
                       >
                         {messageBranches[message.id].map((branch) => (
                           <DropdownMenuItem
                             key={branch.id}
+                            className="cursor-pointer"
                             render={<Link href={`/c/${branch.id}`} />}
                           >
                             <span>{branch.title}</span>
@@ -188,24 +198,21 @@ export function ChatMessages({
                     </DropdownMenu>
                   )}
 
-                  <DropdownMenu>
-                    <DropdownMenuTrigger
-                      render={
-                        <MessageAction label="More options" size="icon-sm">
-                          <MoreHorizontal className="size-4" />
-                        </MessageAction>
-                      }
-                    />
-                    <DropdownMenuContent
-                      align="end"
-                      className="w-max whitespace-nowrap"
-                    >
-                      <DropdownMenuItem onClick={() => handleBranch(message.id)}>
-                        <GitBranch className="size-4" />
-                        <span>Create new branch</span>
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
+                  <MessageAction
+                    tooltip="Copy"
+                    size="icon-sm"
+                    onClick={() => handleCopy(message)}
+                  >
+                    <CopyIcon className="size-4" />
+                  </MessageAction>
+
+                  <MessageAction
+                    tooltip="Create new branch"
+                    size="icon-sm"
+                    onClick={() => handleBranch(message.id)}
+                  >
+                    <GitBranch className="size-4" />
+                  </MessageAction>
                 </MessageActions>
               )}
             </Message>
