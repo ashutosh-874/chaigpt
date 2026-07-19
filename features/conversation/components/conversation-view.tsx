@@ -99,10 +99,10 @@ export const ConversationView = ({
 
     return (
         <div className="flex h-full min-h-0 flex-1 flex-col">
-            <header className="flex h-14 shrink-0 items-center justify-between border-b border-border/65 bg-background/80 backdrop-blur-md px-4 z-10">
-                <div className="flex items-center gap-2 min-w-0">
-                    <SidebarTrigger className="-ml-1 text-muted-foreground hover:text-foreground transition-colors" />
-                    <Separator orientation="vertical" className="mx-2 h-4 bg-border/80" />
+            <header className="flex h-14 shrink-0 items-center justify-between gap-2 border-b border-border/65 bg-background/80 backdrop-blur-md px-4 z-10">
+                <div className="flex flex-1 items-center gap-2 min-w-0">
+                    <SidebarTrigger className="shrink-0 -ml-1 text-muted-foreground hover:text-foreground transition-colors" />
+                    <Separator orientation="vertical" className="shrink-0 mx-2 h-4 bg-border/80" />
                     {isRenaming ? (
                         <Input
                             autoFocus
@@ -118,12 +118,12 @@ export const ConversationView = ({
                                     setIsRenaming(false);
                                 }
                             }}
-                            className="h-7 max-w-64 text-sm font-semibold"
+                            className="h-7 max-w-64 text-sm font-semibold leading-none"
                         />
                     ) : (
                         <h1
                             onClick={startRename}
-                            className="truncate text-sm font-semibold text-foreground tracking-tight cursor-text rounded-md px-1 -mx-1 hover:bg-accent/60 transition-colors"
+                            className="min-w-0 flex-1 truncate text-sm font-semibold leading-none text-foreground tracking-tight cursor-text rounded-md px-1 -mx-1 py-1 hover:bg-accent/60 transition-colors"
                             title="Click to rename"
                         >
                             {title}
@@ -134,7 +134,7 @@ export const ConversationView = ({
                     type="button"
                     variant="ghost"
                     size="icon-sm"
-                    className="size-8 rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
+                    className="size-8 shrink-0 rounded-lg text-muted-foreground hover:text-foreground transition-colors cursor-pointer"
                     onClick={() => setTheme(resolvedTheme === "dark" ? "light" : "dark")}
                     aria-label="Toggle theme"
                 >

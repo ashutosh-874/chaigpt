@@ -46,7 +46,7 @@ const SUGGESTED_PROMPTS = [
 /** Empty-state placeholder shown before the first message is sent. */
 export function ChatEmpty({ onSelectPrompt }: ChatEmptyProps) {
   return (
-    <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 max-w-3xl mx-auto w-full">
+    <div className="flex flex-1 flex-col items-center justify-center px-4 py-8 max-w-3xl mx-auto w-full overflow-y-auto min-h-0">
       <Empty className="border-0 p-0 w-full">
         <EmptyHeader className="mb-6 max-w-md mx-auto">
           <EmptyMedia variant="icon" className="mb-4 bg-primary/10 text-primary mx-auto">
